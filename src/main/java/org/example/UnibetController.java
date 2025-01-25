@@ -7,9 +7,7 @@ import com.google.gson.JsonParser;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class UnibetController {
 
@@ -34,68 +32,56 @@ public class UnibetController {
         return executeGetRequest(url);
     }
 
-    public String getLiveMatchContent(Integer matchId) throws Throwable {
+    public String getAllMatchesContent() throws Throwable {
+        String url = BASE_URL + "listView/all/all/all/all/starting-within.json?lang=ro_RO&market=RO&client_id=2&channel_id=1&ncid=1735514731370&useCombined=true&from=20250125T042531%2B0200&to=20250127T042531%2B0200";
+        return executeGetRequest(url);
+    }
+
+    public String getMatchContent(Integer matchId) throws Throwable {
         String url = BASE_URL + "betoffer/event/" + matchId + ".json?lang=ro_RO&market=RO&ncid=1734917551";
         return executeGetRequest(url);
     }
 
-    public ArrayList<Integer> getLiveMatchesId(String response) {
-        ArrayList<Integer> matchesIdList = new ArrayList<>();
+    public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
+        Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMap = new HashMap<>();
 
         JsonElement jsonElement = JsonParser.parseString(response);
         if (!jsonElement.isJsonObject()) {
             System.out.println("Invalid JSON response.");
-            return matchesIdList;
+            return matchesMap;
         }
 
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         JsonArray events = extractEvents(jsonObject);
         if (events == null) {
-            System.out.println("No live matches available.");
-            return matchesIdList;
+            System.out.println("No matches available.");
+            return matchesMap;
         }
 
         for (JsonElement matchElement : events) {
             if (isInvalidJsonObject(matchElement)) {
                 System.out.println("Invalid JSON response.");
-                return matchesIdList;
+                return matchesMap;
             }
 
             JsonObject matchObject = matchElement.getAsJsonObject();
             JsonObject eventObject = extractEvent(matchObject);
             if (eventObject != null && eventObject.has("id") && !eventObject.get("id").isJsonNull()) {
                 int eventId = eventObject.get("id").getAsInt();
-                matchesIdList.add(eventId);
+                String name = eventObject.get("name").getAsString();
+                JsonArray pathArray = eventObject.getAsJsonArray("path");
+                if (pathArray != null && !pathArray.isEmpty()) {
+                    JsonObject groupObject = pathArray.get(0).getAsJsonObject();
+
+                    int sportId = groupObject.has("id") ? groupObject.get("id").getAsInt() : -1;
+
+                    AbstractMap.SimpleEntry<String, Integer> matchInfo = new AbstractMap.SimpleEntry<>(name, eventId);
+                    matchesMap.putIfAbsent(sportId, new ArrayList<>());
+                    matchesMap.get(sportId).add(matchInfo);
+                }
             }
         }
-        return matchesIdList;
-    }
-
-    public String getMatchName(String response) {
-        String matchName = "";
-
-        JsonElement jsonElement = JsonParser.parseString(response);
-        if (isInvalidJsonObject(jsonElement)) {
-            return "Invalid JSON response.";
-        }
-
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        JsonArray events = extractEvents(jsonObject);
-        if (events == null) {
-            return "No match data available.";
-        }
-
-        for (JsonElement eventElement : events) {
-            if (isInvalidJsonObject(eventElement)) {
-                return "Invalid JSON response.";
-            }
-
-            JsonObject eventObject = eventElement.getAsJsonObject();
-            matchName = eventObject.has("name") && !eventObject.get("name").isJsonNull()
-                    ? eventObject.get("name").getAsString()
-                    : "Unknown Match Name";
-        }
-        return matchName;
+        return matchesMap;
     }
 
     public Map<String, Map<String, String>> getMatchMarkets(String response) {
