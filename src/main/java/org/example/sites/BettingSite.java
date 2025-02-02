@@ -11,6 +11,8 @@ public interface BettingSite {
 
     Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response);
 
+    Map<String, Map<String, String>> getMatchMarkets(String response);
+
     String getSiteName();
 
     Integer getFootballId();

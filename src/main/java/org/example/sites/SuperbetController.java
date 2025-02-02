@@ -30,7 +30,7 @@ public class SuperbetController implements BettingSite {
 
     @Override
     public String getAllMatchesContent() throws Throwable {
-        return executeGetRequest(BASE_URL + "v2/ro-RO/events/by-date?offerState=prematch&startDate=2025-02-01+14:00:00&endDate=2025-02-03+14:00:00");
+        return executeGetRequest(BASE_URL + "v2/ro-RO/events/by-date?offerState=prematch&startDate=2025-02-02+14:00:00&endDate=2025-02-04+14:00:00");
     }
 
     @Override
@@ -60,14 +60,16 @@ public class SuperbetController implements BettingSite {
         return result;
     }
 
-    public Map<String, List<AbstractMap.SimpleEntry<String, Double>>> getMatchMarkets(String response) {
+    @Override
+    public Map<String, Map<String, String>> getMatchMarkets(String response) {
         JsonArray data = extractJsonArray(response);
 
         if (data == null) {
             return Collections.emptyMap();
         }
 
-        Map<String, List<AbstractMap.SimpleEntry<String, Double>>> marketMap = new HashMap<>();
+        Map<String, Map<String, String>> marketMap = new HashMap<>();
+
         for (JsonElement match : data) {
             if (match.isJsonObject()) {
                 JsonArray odds = extractJsonArray(match.getAsJsonObject());
@@ -77,10 +79,11 @@ public class SuperbetController implements BettingSite {
                             JsonObject oddObj = odd.getAsJsonObject();
                             String marketName = oddObj.has("marketName") ? oddObj.get("marketName").getAsString() : "Unknown Market";
                             String betName = oddObj.has("name") ? oddObj.get("name").getAsString() : "Unknown Name";
-                            double betPrice = oddObj.has("price") ? oddObj.get("price").getAsDouble() : 0.0;
+                            String betPrice = oddObj.has("price") ? String.valueOf(oddObj.get("price").getAsDouble()) : "0.0";
+
                             if (betName.contains("Sub") || betName.contains("Peste")) {
-                                marketMap.computeIfAbsent(marketName, k -> new ArrayList<>())
-                                        .add(new AbstractMap.SimpleEntry<>(betName, betPrice));
+                                marketMap.computeIfAbsent(marketName, k -> new HashMap<>())
+                                        .put(betName, betPrice);
                             }
                         }
                     }

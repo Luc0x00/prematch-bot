@@ -197,7 +197,7 @@ public class MatchingGames {
     }
 
     public void matchingSameBets(String matchNameFirstSite, String matchNameSecondSite,
-                                 Map<String, List<AbstractMap.SimpleEntry<String, Double>>> firstSiteMatch,
+                                 Map<String, Map<String, String>> firstSiteMatch,
                                  Map<String, Map<String, String>> secondSiteMatch) {
 
         String[] firstSteTeams = extractTeams(matchNameFirstSite);
@@ -248,16 +248,18 @@ public class MatchingGames {
     private void processMatchingBets(String matchName,
                                      String firstSiteBetName,
                                      String secondSiteBetName,
-                                     Map<String, List<AbstractMap.SimpleEntry<String, Double>>> firstSiteMatch,
+                                     Map<String, Map<String, String>> firstSiteMatch,
                                      Map<String, Map<String, String>> secondSiteMatch) {
 
         if (firstSiteMatch.containsKey(firstSiteBetName) && secondSiteMatch.containsKey(secondSiteBetName)) {
-            List<AbstractMap.SimpleEntry<String, Double>> firstSiteBets = firstSiteMatch.get(firstSiteBetName);
+            Map<String, String> firstSiteBets = firstSiteMatch.get(firstSiteBetName);
             Map<String, String> secondSiteBets = secondSiteMatch.get(secondSiteBetName);
 
-            for (AbstractMap.SimpleEntry<String, Double> firstSiteBet : firstSiteBets) {
+            for (Map.Entry<String, String> firstSiteBet : firstSiteBets.entrySet()) {
                 String firstSiteBetKey = firstSiteBet.getKey();
-                Double firstSiteOdds = firstSiteBet.getValue();
+                Double firstSiteOdds = firstSiteBet.getValue() != null ? Double.parseDouble(firstSiteBet.getValue()) : null;
+
+                if (firstSiteOdds == null) continue;
 
                 String oppositeBetKey = getOppositeBetKey(firstSiteBetKey);
 
@@ -268,7 +270,7 @@ public class MatchingGames {
                     if (secondSiteOdds != null) {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
-                        if (arbitrage < 97.0) {
+                        if (arbitrage < 100.0) {
                             System.out.println("Match: " + matchName);
                             System.out.println("Category: " + firstSiteBetName);
                             System.out.println("Arbitrage Opportunity Detected!");
