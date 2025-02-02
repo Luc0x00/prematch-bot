@@ -1,7 +1,9 @@
 package org.example;
 
-import java.util.AbstractMap;
-import java.util.List;
+import org.example.models.MatchPair;
+import org.example.sites.SuperbetController;
+import org.example.sites.UnibetController;
+
 import java.util.Map;
 
 public class Main {
@@ -11,13 +13,7 @@ public class Main {
 
         while (true) {
 
-            String matchesResponseSuperbet = superbet.getAllMatchesContent();
-            Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapSuperbet = superbet.getMatchesInformation(matchesResponseSuperbet);
-
-            String matchesResponseUnibet = unibet.getAllMatchesContent();
-            Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapUnibet = unibet.getMatchesInformation(matchesResponseUnibet);
-
-            MatchingGames matchingGames = new MatchingGames(matchesMapSuperbet, matchesMapUnibet);
+            MatchingGames matchingGames = new MatchingGames(superbet, unibet);
             Map<MatchPair, Integer[]> similarMatches = matchingGames.getSimilarMatches();
 
             for (Map.Entry<MatchPair, Integer[]> entry : similarMatches.entrySet()) {
@@ -30,7 +26,7 @@ public class Main {
                 String superbetResponse = superbet.getMatchContent(superbetMatchId);
                 String unibetResponse = unibet.getMatchContent(unibetMatchId);
 
-                matchingGames.matchingSameBets(matchPair.superbetGame(), matchPair.unibetGame(), superbet.getMatchMarkets(superbetResponse), unibet.getMatchMarkets(unibetResponse));
+                matchingGames.matchingSameBets(matchPair.firstSiteGame(), matchPair.secondSiteGame(), superbet.getMatchMarkets(superbetResponse), unibet.getMatchMarkets(unibetResponse));
             }
         }
     }

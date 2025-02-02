@@ -1,4 +1,4 @@
-package org.example;
+package org.example.sites;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -9,7 +9,7 @@ import com.squareup.okhttp.Request;
 
 import java.util.*;
 
-public class SuperbetController {
+public class SuperbetController implements BettingSite {
 
     private static final String BASE_URL = "https://production-superbet-offer-ro.freetls.fastly.net/";
     private final OkHttpClient client = new OkHttpClient();
@@ -23,22 +23,21 @@ public class SuperbetController {
         return client.newCall(request).execute().body().string();
     }
 
+    @Override
     public String getMatchContent(Integer matchId) throws Throwable {
         return executeGetRequest(BASE_URL + "v2/ro-RO/events/" + matchId);
     }
 
-    public String getLiveMatchesContent() throws Throwable {
-        return executeGetRequest(BASE_URL + "v2/ro-RO/events/by-date?currentStatus=active&offerState=live&startDate=2024-12-22+00:00:00");
-    }
-
+    @Override
     public String getAllMatchesContent() throws Throwable {
-        return executeGetRequest(BASE_URL + "v2/ro-RO/events/by-date?offerState=prematch&startDate=2025-01-25+04:00:00&endDate=2025-01-27+04:00:00");
+        return executeGetRequest(BASE_URL + "v2/ro-RO/events/by-date?offerState=prematch&startDate=2025-02-01+14:00:00&endDate=2025-02-03+14:00:00");
     }
 
+    @Override
     public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
         JsonArray data = extractJsonArray(response);
+
         if (data == null) {
-//            System.out.println("Error: No data found in response.");
             return Collections.emptyMap();
         }
 
@@ -50,13 +49,12 @@ public class SuperbetController {
                     int sportId = obj.get("sportId").getAsInt();
                     String matchName = obj.get("matchName").getAsString();
                     int eventId = obj.get("eventId").getAsInt();
-                    result.computeIfAbsent(sportId, k -> new ArrayList<>())
-                            .add(new AbstractMap.SimpleEntry<>(matchName, eventId));
-                } else {
-//                    System.out.println("Warning: Missing expected fields in match object.");
+
+                    if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
+                        result.computeIfAbsent(sportId, k -> new ArrayList<>())
+                                .add(new AbstractMap.SimpleEntry<>(matchName, eventId));
+                    }
                 }
-            } else {
-//                System.out.println("Warning: Invalid match element in data array.");
             }
         }
         return result;
@@ -64,8 +62,8 @@ public class SuperbetController {
 
     public Map<String, List<AbstractMap.SimpleEntry<String, Double>>> getMatchMarkets(String response) {
         JsonArray data = extractJsonArray(response);
+
         if (data == null) {
-//            System.out.println("Error: No data found in response.");
             return Collections.emptyMap();
         }
 
@@ -84,36 +82,176 @@ public class SuperbetController {
                                 marketMap.computeIfAbsent(marketName, k -> new ArrayList<>())
                                         .add(new AbstractMap.SimpleEntry<>(betName, betPrice));
                             }
-                        } else {
-//                            System.out.println("Warning: Invalid odd element.");
                         }
                     }
-                } else {
-//                    System.out.println("Warning: No odds found for match.");
                 }
-            } else {
-//                System.out.println("Warning: Invalid match element in data array.");
             }
         }
         return marketMap;
+    }
+
+    @Override
+    public String getSiteName() {
+        return "Superbet";
+    }
+
+    @Override
+    public Integer getFootballId() {
+        return 5;
+    }
+
+    @Override
+    public Integer getBasketballId() {
+        return 4;
+    }
+
+    @Override
+    public Integer getTennisId() {
+        return 2;
+    }
+
+    @Override
+    public String getTotalSuturiPePoarta() {
+        return "Total șuturi pe poartă";
+    }
+
+    @Override
+    public String getTotalSuturiPePoartaEchipa() {
+        return "Șuturi pe poartă %s";
+    }
+
+    @Override
+    public String getTotalSuturi() {
+        return "Total șuturi";
+    }
+
+    @Override
+    public String getTotalSuturiEchipa() {
+        return "Total șuturi %s";
+    }
+
+    @Override
+    public String getTotalCartonase() {
+        return "Total cartonașe";
+    }
+
+    @Override
+    public String getTotalCartonaseEchipa() {
+        return "Total cartonașe %s";
+    }
+
+    @Override
+    public String getTotalCornere() {
+        return "Total cornere";
+    }
+
+    @Override
+    public String getTotalCornereEchipa() {
+        return "Total cornere %s";
+    }
+
+    @Override
+    public String getPrimaReprizaTotalCornere() {
+        return "Prima repriză - Total cornere";
+    }
+
+    @Override
+    public String getPrimaReprizaTotalCornereEchipa() {
+        return "Prima repriză - Total cornere %s";
+    }
+
+    @Override
+    public String getTotalGoluri() {
+        return "Total goluri";
+    }
+
+    @Override
+    public String getTotalGoluriEchipa() {
+        return "Total goluri %s";
+    }
+
+    @Override
+    public String getPrimaReprizaTotalGoluri() {
+        return "Prima repriză - Total goluri";
+    }
+
+    @Override
+    public String getPrimaReprizaTotalGoluriEchipa() {
+        return "Prima repriză - Total goluri %s";
+    }
+
+    @Override
+    public String getADouaReprizaTotalGoluriEchipa() {
+        return "A doua repriză - Total goluri";
+    }
+
+    @Override
+    public String getTotalOfsaiduri() {
+        return "Total ofsaiduri";
+    }
+
+    @Override
+    public String getTotalOfsaiduriEchipa() {
+        return "Total ofsaiduri %s";
+    }
+
+    @Override
+    public String getTotalFaulturi() {
+        return "Total faulturi";
+    }
+
+    @Override
+    public String getTotalFaulturiEchipa() {
+        return "Total faulturi %s";
+    }
+
+    @Override
+    public String getTotalGameuri() {
+        return "Total game-uri";
+    }
+
+    @Override
+    public String getTotalGameuriEchipa() {
+        return "Total game-uri - %s";
+    }
+
+    @Override
+    public String getTotalSeturi() {
+        return "Total seturi";
+    }
+
+    @Override
+    public String getSet1TotalGameuri() {
+        return "Set 1. - Total game-uri";
+    }
+
+    @Override
+    public String getTotalPuncte() {
+        return "Total puncte (incl. prelungiri)";
+    }
+
+    @Override
+    public String getTotalPuncteEchipa() {
+        return "Total puncte %s (incl. prelungiri)";
+    }
+
+    @Override
+    public String getSplitter() {
+        return "·";
     }
 
     private JsonArray extractJsonArray(String jsonResponse) {
         JsonElement jsonElement = JsonParser.parseString(jsonResponse);
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("data")) {
             return jsonElement.getAsJsonObject().getAsJsonArray("data");
-        } else {
-//            System.out.println("Error: Key '" + "data" + "' not found in JSON response.");
-            return null;
         }
+        return null;
     }
 
     private JsonArray extractJsonArray(JsonObject jsonObject) {
         if (jsonObject.has("odds") && jsonObject.get("odds").isJsonArray()) {
             return jsonObject.getAsJsonArray("odds");
-        } else {
-//            System.out.println("Error: Key '" + "odds" + "' not found in JSON object.");
-            return null;
         }
+        return null;
     }
 }
