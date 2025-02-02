@@ -9,6 +9,7 @@ public class BettingSiteFactory {
     static {
         bettingSites.add(new SuperbetController());
         bettingSites.add(new UnibetController());
+        bettingSites.add(new WinnerController());
     }
 
     public static List<BettingSite> getAllBettingSites() {

@@ -1,32 +1,44 @@
 package org.example;
 
 import org.example.models.MatchPair;
-import org.example.sites.SuperbetController;
-import org.example.sites.UnibetController;
+import org.example.sites.BettingSite;
+import org.example.sites.BettingSiteFactory;
 
+import java.util.List;
 import java.util.Map;
 
 public class Main {
     public static void main(String[] args) throws Throwable {
-        SuperbetController superbet = new SuperbetController();
-        UnibetController unibet = new UnibetController();
+        List<BettingSite> bettingSites = BettingSiteFactory.getAllBettingSites();
 
         while (true) {
+            for (int i = 0; i < bettingSites.size(); i++) {
+                for (int j = i + 1; j < bettingSites.size(); j++) {
 
-            MatchingGames matchingGames = new MatchingGames(superbet, unibet);
-            Map<MatchPair, Integer[]> similarMatches = matchingGames.getSimilarMatches();
+                    BettingSite site1 = bettingSites.get(i);
+                    BettingSite site2 = bettingSites.get(j);
 
-            for (Map.Entry<MatchPair, Integer[]> entry : similarMatches.entrySet()) {
-                MatchPair matchPair = entry.getKey();
-                Integer[] ids = entry.getValue();
+                    MatchingGames matchingGames = new MatchingGames(site1, site2);
+                    Map<MatchPair, Integer[]> similarMatches = matchingGames.getSimilarMatches();
 
-                Integer superbetMatchId = ids[0];
-                Integer unibetMatchId = ids[1];
+                    for (Map.Entry<MatchPair, Integer[]> entry : similarMatches.entrySet()) {
+                        MatchPair matchPair = entry.getKey();
+                        Integer[] ids = entry.getValue();
 
-                String superbetResponse = superbet.getMatchContent(superbetMatchId);
-                String unibetResponse = unibet.getMatchContent(unibetMatchId);
+                        Integer site1MatchId = ids[0];
+                        Integer site2MatchId = ids[1];
 
-                matchingGames.matchingSameBets(matchPair.firstSiteGame(), matchPair.secondSiteGame(), superbet.getMatchMarkets(superbetResponse), unibet.getMatchMarkets(unibetResponse));
+                        String site1Response = site1.getMatchContent(site1MatchId);
+                        String site2Response = site2.getMatchContent(site2MatchId);
+
+                        matchingGames.matchingSameBets(
+                                matchPair.firstSiteGame(),
+                                matchPair.secondSiteGame(),
+                                site1.getMatchMarkets(site1Response),
+                                site2.getMatchMarkets(site2Response)
+                        );
+                    }
+                }
             }
         }
     }

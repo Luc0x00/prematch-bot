@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class UnibetController implements BettingSite {
@@ -26,9 +27,14 @@ public class UnibetController implements BettingSite {
 
     @Override
     public String getAllMatchesContent() throws Throwable {
-        String url = BASE_URL + "listView/all/all/all/all/starting-within.json?lang=ro_RO&market=RO&client_id=2&channel_id=1&ncid=1735514731370&useCombined=true&from=20250201T142531%2B0200&to=20250203T142531%2B0200";
+        String fromTime = getCurrentTimeFormatted();
+        String toTime = getTime48HoursLater();
+
+        String url = BASE_URL + "listView/all/all/all/all/starting-within.json?lang=ro_RO&market=RO&client_id=2&channel_id=1&ncid=1735514731370&useCombined=true&from=" + fromTime + "%2B0200&to=" + toTime + "%2B0200";
+
         return executeGetRequest(url);
     }
+
 
     @Override
     public String getMatchContent(Integer matchId) throws Throwable {
@@ -75,6 +81,7 @@ public class UnibetController implements BettingSite {
         return matchesMap;
     }
 
+    @Override
     public Map<String, Map<String, String>> getMatchMarkets(String response) {
         Map<String, Map<String, String>> marketMap = new HashMap<>();
         JsonElement jsonElement = JsonParser.parseString(response);
@@ -140,16 +147,6 @@ public class UnibetController implements BettingSite {
     @Override
     public Integer getFootballId() {
         return 1000093190;
-    }
-
-    @Override
-    public Integer getBasketballId() {
-        return 1000093204;
-    }
-
-    @Override
-    public Integer getTennisId() {
-        return 1000093193;
     }
 
     @Override
@@ -248,36 +245,6 @@ public class UnibetController implements BettingSite {
     }
 
     @Override
-    public String getTotalGameuri() {
-        return "Total Game-uri";
-    }
-
-    @Override
-    public String getTotalGameuriEchipa() {
-        return "Total game-uri câștigate de %s";
-    }
-
-    @Override
-    public String getTotalSeturi() {
-        return "Total seturi";
-    }
-
-    @Override
-    public String getSet1TotalGameuri() {
-        return "Total Game-uri - Setul 1";
-    }
-
-    @Override
-    public String getTotalPuncte() {
-        return "Total puncte - Inclusiv Prelungiri";
-    }
-
-    @Override
-    public String getTotalPuncteEchipa() {
-        return "Total Puncte %s - Inclusiv Prelungiri";
-    }
-
-    @Override
     public String getSplitter() {
         return " - ";
     }
@@ -339,5 +306,19 @@ public class UnibetController implements BettingSite {
         return outcomeObject.has("odds") && !outcomeObject.get("odds").isJsonNull()
                 ? outcomeObject.get("odds").getAsDouble() / 1000.0
                 : 0.0;
+    }
+
+    private String getCurrentTimeFormatted() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+        sdf.setTimeZone(TimeZone.getTimeZone("Europe/Bucharest"));
+        return sdf.format(new Date());
+    }
+
+    private String getTime48HoursLater() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+        sdf.setTimeZone(TimeZone.getTimeZone("Europe/Bucharest"));
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
+        calendar.add(Calendar.HOUR, 48);
+        return sdf.format(calendar.getTime());
     }
 }

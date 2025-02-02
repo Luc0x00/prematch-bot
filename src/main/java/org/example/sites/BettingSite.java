@@ -11,13 +11,11 @@ public interface BettingSite {
 
     Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response);
 
+    Map<String, Map<String, String>> getMatchMarkets(String response);
+
     String getSiteName();
 
     Integer getFootballId();
-
-    Integer getBasketballId();
-
-    Integer getTennisId();
 
     String getTotalSuturiPePoarta();
 
@@ -56,18 +54,6 @@ public interface BettingSite {
     String getTotalFaulturi();
 
     String getTotalFaulturiEchipa();
-
-    String getTotalGameuri();
-
-    String getTotalGameuriEchipa();
-
-    String getTotalSeturi();
-
-    String getSet1TotalGameuri();
-
-    String getTotalPuncte();
-
-    String getTotalPuncteEchipa();
 
     String getSplitter();
 }
