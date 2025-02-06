@@ -20,11 +20,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Compile Java project
-        run: |
-          mkdir out
-          javac -d out $(find . -name "*.java")
+      - name: Set up Maven
+        run: mvn -v  # Check Maven installation
+
+      - name: Build and Compile Project
+        run: mvn clean package
 
       - name: Run Java application
-        run: |
-          java -cp out org.example.Main
+        run: java -cp target/betting-app-1.0-SNAPSHOT.jar org.example.Main
