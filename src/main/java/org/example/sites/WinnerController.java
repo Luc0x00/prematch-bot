@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.okhttp.*;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
