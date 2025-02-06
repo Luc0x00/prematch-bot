@@ -1,9 +1,6 @@
 package org.example.sites;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
@@ -32,38 +29,58 @@ public class BetanoController implements BettingSite {
     }
 
     public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
-        JsonObject root = JsonParser.parseString(response).getAsJsonObject();
-        JsonArray blocks = root.getAsJsonObject("data").getAsJsonArray("blocks");
-
-        if (blocks == null) {
-            return Collections.emptyMap();
-        }
-
-        Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> result = new HashMap<>();
-
-        for (JsonElement blockElement : blocks) {
-            JsonObject block = blockElement.getAsJsonObject();
-            JsonArray events = block.getAsJsonArray("events");
-
-            if (events == null) {
-                continue;
+        try {
+            // Step 1: Check if the response is empty
+            if (response == null || response.trim().isEmpty()) {
+                System.out.println("Error: Empty response from API.");
+                return Collections.emptyMap();
             }
 
-            for (JsonElement eventElement : events) {
-                JsonObject event = eventElement.getAsJsonObject();
-                if (event.has("sportId") && event.has("name") && event.has("id")) {
-                    int sportId = event.get("sportId").getAsString().equals("FOOT") ? 1 : 0;
-                    String matchName = event.get("name").getAsString();
-                    int eventId = event.get("id").getAsInt();
+            // Step 2: Ensure response is valid JSON
+            response = response.trim();
+            if (!response.startsWith("{") && !response.startsWith("[")) {
+                System.out.println("Error: API returned non-JSON data. Response: " + response);
+                return Collections.emptyMap();
+            }
 
-                    if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
-                        result.computeIfAbsent(sportId, k -> new ArrayList<>())
-                                .add(new AbstractMap.SimpleEntry<>(matchName, eventId));
+            // Step 3: Try parsing JSON safely
+            JsonObject root = JsonParser.parseString(response).getAsJsonObject();
+            if (!root.has("data") || !root.getAsJsonObject("data").has("blocks")) {
+                System.out.println("Error: 'blocks' key is missing in API response.");
+                return Collections.emptyMap();
+            }
+
+            JsonArray blocks = root.getAsJsonObject("data").getAsJsonArray("blocks");
+            Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> result = new HashMap<>();
+
+            for (JsonElement blockElement : blocks) {
+                JsonObject block = blockElement.getAsJsonObject();
+                JsonArray events = block.has("events") ? block.getAsJsonArray("events") : null;
+
+                if (events == null) continue;
+
+                for (JsonElement eventElement : events) {
+                    JsonObject event = eventElement.getAsJsonObject();
+                    if (event.has("sportId") && event.has("name") && event.has("id")) {
+                        int sportId = event.get("sportId").getAsString().equals("FOOT") ? 1 : 0;
+                        String matchName = event.get("name").getAsString();
+                        int eventId = event.get("id").getAsInt();
+
+                        if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
+                            result.computeIfAbsent(sportId, k -> new ArrayList<>())
+                                    .add(new AbstractMap.SimpleEntry<>(matchName, eventId));
+                        }
                     }
                 }
             }
+            return result;
+        } catch (JsonSyntaxException e) {
+            System.out.println("Error: Malformed JSON detected. Message: " + e.getMessage());
+            return Collections.emptyMap();
+        } catch (Exception e) {
+            System.out.println("Unexpected Error: " + e.getMessage());
+            return Collections.emptyMap();
         }
-        return result;
     }
 
     public Map<String, Map<String, String>> getMatchMarkets(String response) {
