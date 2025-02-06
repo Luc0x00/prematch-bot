@@ -202,7 +202,7 @@ public class MatchingGames {
                     if (secondSiteOdds != null) {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
-                        if (arbitrage < 97.0) {
+                        if (arbitrage < 100.0) {
                             System.out.println("Match: " + matchName);
                             System.out.println("Category: " + firstSiteBetName);
                             System.out.println("Arbitrage Opportunity Detected!");
