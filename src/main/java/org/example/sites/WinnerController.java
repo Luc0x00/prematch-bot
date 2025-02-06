@@ -26,7 +26,7 @@ public class WinnerController implements BettingSite {
                 .addHeader("User-Agent", "insomnia/10.3.0")
                 .build();
         Response response = client.newCall(request).execute();
-        return response.body().string();
+        return Objects.requireNonNull(response.body()).string();
     }
 
     @Override

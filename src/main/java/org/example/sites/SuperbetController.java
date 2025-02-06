@@ -21,7 +21,7 @@ public class SuperbetController implements BettingSite {
                 .get()
                 .addHeader("User-Agent", "insomnia/10.3.0")
                 .build();
-        return client.newCall(request).execute().body().string();
+        return Objects.requireNonNull(client.newCall(request).execute().body()).string();
     }
 
     @Override

@@ -17,7 +17,7 @@ public class BetanoController implements BettingSite {
                 .get()
                 .addHeader("User-Agent", "insomnia/10.3.0")
                 .build();
-        return client.newCall(request).execute().body().string();
+        return Objects.requireNonNull(client.newCall(request).execute().body()).string();
     }
 
     public String getMatchContent(Integer matchId) throws Throwable {
@@ -32,21 +32,18 @@ public class BetanoController implements BettingSite {
         try {
             // Step 1: Check if the response is empty
             if (response == null || response.trim().isEmpty()) {
-                System.out.println("Error: Empty response from API.");
                 return Collections.emptyMap();
             }
 
             // Step 2: Ensure response is valid JSON
             response = response.trim();
             if (!response.startsWith("{") && !response.startsWith("[")) {
-                System.out.println("Error: API returned non-JSON data. Response: " + response);
                 return Collections.emptyMap();
             }
 
             // Step 3: Try parsing JSON safely
             JsonObject root = JsonParser.parseString(response).getAsJsonObject();
             if (!root.has("data") || !root.getAsJsonObject("data").has("blocks")) {
-                System.out.println("Error: 'blocks' key is missing in API response.");
                 return Collections.emptyMap();
             }
 
@@ -74,11 +71,7 @@ public class BetanoController implements BettingSite {
                 }
             }
             return result;
-        } catch (JsonSyntaxException e) {
-            System.out.println("Error: Malformed JSON detected. Message: " + e.getMessage());
-            return Collections.emptyMap();
         } catch (Exception e) {
-            System.out.println("Unexpected Error: " + e.getMessage());
             return Collections.emptyMap();
         }
     }
