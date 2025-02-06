@@ -1,0 +1,30 @@
+name: Betting Checker
+
+on:
+  schedule:
+    - cron: "*/70 * * * *"  # Runs every 70 minutes (1 hour running + 10 min pause)
+  workflow_dispatch: # Allows manual execution
+
+jobs:
+  run-betting-script:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # Ensures it doesn't exceed 1 hour
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Compile Java project
+        run: |
+          mkdir out
+          javac -d out $(find . -name "*.java")
+
+      - name: Run Java application
+        run: |
+          java -cp out org.example.Main
