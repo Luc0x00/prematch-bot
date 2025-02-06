@@ -46,11 +46,12 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <release>21</release>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
 
-            <!-- Maven JAR Plugin (Creates Executable JAR with Main-Class) -->
+            <!-- Maven JAR Plugin: Ensures JAR has a Main-Class -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -64,7 +65,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Shade Plugin (Fat JAR including Dependencies) -->
+            <!-- Maven Shade Plugin: Creates a Fat JAR with All Dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -87,4 +88,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
