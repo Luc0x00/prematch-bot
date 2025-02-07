@@ -30,18 +30,15 @@ public class BetanoController implements BettingSite {
 
     public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
         try {
-            // Step 1: Check if the response is empty
             if (response == null || response.trim().isEmpty()) {
                 return Collections.emptyMap();
             }
 
-            // Step 2: Ensure response is valid JSON
             response = response.trim();
             if (!response.startsWith("{") && !response.startsWith("[")) {
                 return Collections.emptyMap();
             }
 
-            // Step 3: Try parsing JSON safely
             JsonObject root = JsonParser.parseString(response).getAsJsonObject();
             if (!root.has("data") || !root.getAsJsonObject("data").has("blocks")) {
                 return Collections.emptyMap();
@@ -233,5 +230,4 @@ public class BetanoController implements BettingSite {
     public String getSplitter() {
         return " - ";
     }
-
 }
