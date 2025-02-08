@@ -123,9 +123,7 @@ public class MatchingGames {
         boolean isFirstTeamMatch = jaroWinkler.apply(firstSiteTeam1, secondSiteTeam1) >= threshold;
         boolean isSecondTeamMatch = jaroWinkler.apply(firstSiteTeam2, secondSiteTeam2) >= threshold;
 
-        return (isFirstTeamMatch && isSecondTeamMatch) ||
-                (jaroWinkler.apply(firstSiteTeam1, secondSiteTeam2) >= threshold &&
-                        jaroWinkler.apply(firstSiteTeam2, secondSiteTeam1) >= threshold);
+        return (isFirstTeamMatch && isSecondTeamMatch);
     }
 
     public void matchingSameBets(String matchNameFirstSite, String matchNameSecondSite,

@@ -3,7 +3,10 @@ package org.example.sites;
 import com.google.gson.*;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
+import java.io.IOException;
 import java.util.*;
 
 public class BetanoController implements BettingSite {
@@ -11,20 +14,29 @@ public class BetanoController implements BettingSite {
     private static final String BASE_URL = "https://ro.betano.com/api";
     private final OkHttpClient client = new OkHttpClient();
 
-    private String executeGetRequest(String url) throws Throwable {
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("User-Agent", "insomnia/10.3.0")
-                .build();
-        return Objects.requireNonNull(client.newCall(request).execute().body()).string();
+    private String executeGetRequest(String url) {
+        try {
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("User-Agent", "insomnia/10.3.0")
+                    .build();
+
+            Response response = client.newCall(request).execute();
+            try (ResponseBody responseBody = response.body()) {
+                return responseBody != null ? responseBody.string() : "";
+            }
+        } catch (IOException e) {
+            System.err.println("Request failed: " + e.getMessage());
+            return "";
+        }
     }
 
-    public String getMatchContent(Integer matchId) throws Throwable {
+    public String getMatchContent(Integer matchId) {
         return executeGetRequest(BASE_URL + "/cote/acs-sepsi-farul-constanta/" + matchId + "/?bt=13");
     }
 
-    public String getAllMatchesContent() throws Throwable {
+    public String getAllMatchesContent() {
         return executeGetRequest(BASE_URL + "/sport/fotbal/meciurile-urmatoare-de-azi/?sort=Leagues&req=la,s,stnf,c,mb");
     }
 
