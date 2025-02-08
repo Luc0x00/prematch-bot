@@ -118,7 +118,7 @@ public class MatchingGames {
         String secondSiteTeam1 = secondSiteTeams[0];
         String secondSiteTeam2 = secondSiteTeams[1];
         JaroWinklerDistance jaroWinkler = new JaroWinklerDistance();
-        double threshold = 0.90;
+        double threshold = 0.95;
 
         boolean isFirstTeamMatch = jaroWinkler.apply(firstSiteTeam1, secondSiteTeam1) >= threshold;
         boolean isSecondTeamMatch = jaroWinkler.apply(firstSiteTeam2, secondSiteTeam2) >= threshold;
@@ -202,7 +202,7 @@ public class MatchingGames {
                     if (secondSiteOdds != null) {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
-                        if (arbitrage < 97.0) {
+                        if (arbitrage < 95.0) {
                             System.out.println("Match: " + matchName);
                             System.out.println("Category: " + firstSiteBetName);
                             System.out.println("Arbitrage Opportunity Detected!");

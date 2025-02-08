@@ -9,6 +9,8 @@ import okhttp3.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class WinnerController implements BettingSite {
 
@@ -16,7 +18,9 @@ public class WinnerController implements BettingSite {
     private static final String API_URL = "https://micros-prod1.gambling-solutions.ro/api/digitain-fetcher/v2/public/events";
     private static final String BASE_URL = "https://micros-prod1.gambling-solutions.ro/api/digitain-tickets/v1/public/bet-builder/evaluate";
 
-    public String executePostRequest(String jsonPayload, String apiUrl) throws IOException {
+    public CompletableFuture<String> executePostRequest(String jsonPayload, String apiUrl) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType, jsonPayload);
         Request request = new Request.Builder()
@@ -25,36 +29,64 @@ public class WinnerController implements BettingSite {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("User-Agent", "insomnia/10.3.0")
                 .build();
-        Response response = client.newCall(request).execute();
-        return Objects.requireNonNull(response.body()).string();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                future.complete("");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                try (ResponseBody responseBody = response.body()) {
+                    if (responseBody != null) {
+                        future.complete(responseBody.string());
+                    } else {
+                        future.complete("");
+                    }
+                }
+            }
+        });
+
+        return future;
     }
 
     @Override
-    public String getMatchContent(Integer matchId) throws Throwable {
-        String jsonPayload = "{\n" +
-                "    \"eventId\": \"" + matchId + "\",\n" +
-                "    \"isLive\": false,\n" +
-                "    \"language\": \"ro\",\n" +
-                "    \"stakes\": []\n" +
-                "}";
+    public String getMatchContent(Integer matchId) {
+        try {
+            String jsonPayload = "{\n" +
+                    "    \"eventId\": \"" + matchId + "\",\n" +
+                    "    \"isLive\": false,\n" +
+                    "    \"language\": \"ro\",\n" +
+                    "    \"stakes\": []\n" +
+                    "}";
 
-        return executePostRequest(jsonPayload, BASE_URL);
+            return executePostRequest(jsonPayload, BASE_URL).get(30, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
-    @Override
-    public String getAllMatchesContent() throws Throwable {
-        String startDate = getCurrentTimeFormatted();
-        String endDate = getTime48HoursLater();
 
-        String jsonPayload = String.format("""
+    @Override
+    public String getAllMatchesContent() {
+        try {
+            String startDate = getCurrentTimeFormatted();
+            String endDate = getTime48HoursLater();
+
+            String jsonPayload = String.format("""
             {
                 "timeFrom": "%s",
                 "timeTo": "%s",
                 "sportId": "1"
             }""", startDate, endDate);
 
-        return executePostRequest(jsonPayload, API_URL);
+            return executePostRequest(jsonPayload, API_URL).get(30, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            return "";
+        }
     }
+
 
     @Override
     public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
