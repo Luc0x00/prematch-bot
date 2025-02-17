@@ -88,11 +88,11 @@ public class MatchingGames {
 
                     if (isMatchForFootball(firstSiteGame, secondSiteGame) && Objects.equals(firstSiteSportId, this.firstBettingSite.getFootballId())) {
                         if (!firstSiteGame.contains("U23") && !secondSiteGame.contains("U23") &&
-                                !firstSiteGame.contains("U19") && !secondSiteGame.contains("U19") && !firstSiteGame.contains("(F)") && !secondSiteGame.contains("(F)") && !firstSiteGame.contains("U20") && !secondSiteGame.contains("U20")) {
+                                !firstSiteGame.contains("U19") && !secondSiteGame.contains("U19") && !firstSiteGame.contains("(F)") && !secondSiteGame.contains("(F)") && !firstSiteGame.contains("U20") && !secondSiteGame.contains("U20") && !firstSiteGame.contains("(R)") && !secondSiteGame.contains("(R)") && !firstSiteGame.contains("II") && !secondSiteGame.contains("II") && !firstSiteGame.contains("U21") && !secondSiteGame.contains("U21")) {
                             MatchPair matchPair = new MatchPair(firstSiteGame, secondSiteGame);
                             matchingGames.put(matchPair, new Integer[]{firstSiteGameEntry.getValue(), secondSiteGameEntry.getValue()});
                         } else if ((firstSiteGame.contains("U23") && secondSiteGame.contains("U23")) ||
-                                (firstSiteGame.contains("U19") && secondSiteGame.contains("U19")) || (firstSiteGame.contains("(F)") && secondSiteGame.contains("(F)")) || (firstSiteGame.contains("U20") && secondSiteGame.contains("U20"))) {
+                                (firstSiteGame.contains("U19") && secondSiteGame.contains("U19")) || (firstSiteGame.contains("(F)") && secondSiteGame.contains("(F)")) || (firstSiteGame.contains("U20") && secondSiteGame.contains("U20")) || (firstSiteGame.contains("(R)") && secondSiteGame.contains("(R)")) || (firstSiteGame.contains("II") && secondSiteGame.contains("II")) || (firstSiteGame.contains("U21") && secondSiteGame.contains("U21"))) {
                             MatchPair matchPair = new MatchPair(firstSiteGame, secondSiteGame);
                             matchingGames.put(matchPair, new Integer[]{firstSiteGameEntry.getValue(), secondSiteGameEntry.getValue()});
                         }
@@ -158,10 +158,10 @@ public class MatchingGames {
                 String firstSiteBetAway = String.format(firstSiteBetName, firstSiteAwayTeam);
                 String secondSiteBetAway = String.format(secondSiteBetName, secondSiteAwayTeam);
 
-                processMatchingBets(matchNameFirstSite, firstSiteBetHome, secondSiteBetHome, firstSiteMatch, secondSiteMatch);
-                processMatchingBets(matchNameFirstSite, firstSiteBetAway, secondSiteBetAway, firstSiteMatch, secondSiteMatch);
+                processMatchingBets(matchNameFirstSite, matchNameSecondSite, firstSiteBetHome, secondSiteBetHome, firstSiteMatch, secondSiteMatch);
+                processMatchingBets(matchNameFirstSite, matchNameSecondSite, firstSiteBetAway, secondSiteBetAway, firstSiteMatch, secondSiteMatch);
             } else {
-                processMatchingBets(matchNameFirstSite, firstSiteBetName, secondSiteBetName, firstSiteMatch, secondSiteMatch);
+                processMatchingBets(matchNameFirstSite, matchNameSecondSite, firstSiteBetName, secondSiteBetName, firstSiteMatch, secondSiteMatch);
             }
         }
     }
@@ -175,7 +175,8 @@ public class MatchingGames {
         return null;
     }
 
-    private void processMatchingBets(String matchName,
+    private void processMatchingBets(String matchNameFirstSite,
+                                     String matchNameSecondSite,
                                      String firstSiteBetName,
                                      String secondSiteBetName,
                                      Map<String, Map<String, String>> firstSiteMatch,
@@ -201,7 +202,8 @@ public class MatchingGames {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
                         if (arbitrage < 95.0) {
-                            System.out.println("Match: " + matchName);
+                            System.out.println("Match: " + matchNameFirstSite);
+                            System.out.println("Match: " + matchNameSecondSite);
                             System.out.println("Category: " + firstSiteBetName);
                             System.out.println("Arbitrage Opportunity Detected!");
                             System.out.println("Matching Bet Pair:");
