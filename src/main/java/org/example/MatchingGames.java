@@ -6,10 +6,13 @@ import org.example.sites.BettingSite;
 
 import java.util.*;
 
+import static org.example.TelegramNotifier.sendMessageToTelegram;
+
 public class MatchingGames {
 
     private Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapFirstSite;
     private Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapSecondSite;
+    private final Set<String> sentMessages;
 
     private final BettingSite firstBettingSite;
 
@@ -18,9 +21,10 @@ public class MatchingGames {
     private Map<Integer, Integer> sportIdPairs;
     private Map<String, String> betsCategories;
 
-    public MatchingGames(BettingSite firstBettingSite, BettingSite secondBettingSite) throws Throwable {
+    public MatchingGames(BettingSite firstBettingSite, BettingSite secondBettingSite, Set<String> sentMessages) throws Throwable {
         this.firstBettingSite = firstBettingSite;
         this.secondBettingSite = secondBettingSite;
+        this.sentMessages = sentMessages;
 
         initControllers();
         initSportsId();
@@ -202,15 +206,19 @@ public class MatchingGames {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
                         if (arbitrage < 95.0) {
-                            System.out.println("Match: " + matchNameFirstSite);
-                            System.out.println("Match: " + matchNameSecondSite);
-                            System.out.println("Category: " + firstSiteBetName);
-                            System.out.println("Arbitrage Opportunity Detected!");
-                            System.out.println("Matching Bet Pair:");
-                            System.out.println(this.firstBettingSite.getSiteName() + ": " + firstSiteBetKey + " - Odds: " + firstSiteOdds);
-                            System.out.println(this.secondBettingSite.getSiteName() + ": " + oppositeBetKey + " - Odds: " + secondSiteOdds);
-                            System.out.println("Arbitrage Percentage: " + arbitrage + "%");
-                            System.out.println();
+                            String message = "**Arbitrage Opportunity Detected!**\n" +
+                                    "🏆 **Match:** `" + matchNameFirstSite + "`\n" +
+                                    "🏆 **Match:** `" + matchNameSecondSite + "`\n" +
+                                    "📌 **Category:** `" + firstSiteBetName + "`\n" +
+                                    "📊 **Odds**\n" +
+                                    "- `" + this.firstBettingSite.getSiteName() + "`: `" + firstSiteBetKey + "` ➝ **" + firstSiteOdds + "**\n" +
+                                    "- `" + this.secondBettingSite.getSiteName() + "`: `" + oppositeBetKey + "` ➝ **" + secondSiteOdds + "**\n" +
+                                    "📈 **Arbitrage Percentage:** `" + arbitrage + "%` 🔥";
+
+                            if (!sentMessages.contains(message)) {
+                                sendMessageToTelegram(message);
+                                sentMessages.add(message);
+                            }
                         }
                     }
                 }
