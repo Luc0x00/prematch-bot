@@ -216,6 +216,7 @@ public class MatchingGames {
                                     "📈 **Arbitrage Percentage:** `" + arbitrage + "%` 🔥";
 
                             if (!sentMessages.contains(message)) {
+                                System.out.println(message);
                                 sendMessageToTelegram(message);
                                 sentMessages.add(message);
                             }
