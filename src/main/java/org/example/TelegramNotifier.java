@@ -14,38 +14,9 @@ import java.nio.charset.StandardCharsets;
 public class TelegramNotifier {
     private static final String BOT_TOKEN = "7801461461:AAEVSW29o-4qRnj_nNfXb0SZdIeoepeg6ww";
 
-    // Get the latest chat ID dynamically using Gson
-    private static String getChatId() {
-        try {
-            String urlString = "https://api.telegram.org/bot" + BOT_TOKEN + "/getUpdates";
-            URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-
-            InputStreamReader reader = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8);
-            JsonElement rootElement = JsonParser.parseReader(reader);
-            reader.close();
-
-            JsonObject rootObject = rootElement.getAsJsonObject();
-            JsonArray results = rootObject.getAsJsonArray("result");
-
-            if (!results.isEmpty()) {
-                JsonObject lastMessage = results.get(results.size() - 1).getAsJsonObject();
-                return lastMessage.getAsJsonObject("message").getAsJsonObject("chat").get("id").getAsString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public static void sendMessageToTelegram(String message) {
         try {
-            String chatId = getChatId();
-            if (chatId == null) {
-                System.out.println("Failed to retrieve chat ID.");
-                return;
-            }
+            String chatId = "5208483861";
 
             String urlString = "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage";
             URL url = new URL(urlString);
