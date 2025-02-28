@@ -62,6 +62,8 @@ public class TelegramNotifier {
                 os.write(input, 0, input.length);
             }
 
+            Thread.sleep(500);
+
             int responseCode = conn.getResponseCode();
             if (responseCode == 200) {
                 System.out.println("Message sent to Telegram successfully!");
