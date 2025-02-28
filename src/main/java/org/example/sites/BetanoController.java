@@ -79,6 +79,7 @@ public class BetanoController implements BettingSite {
                     }
                 }
             }
+            System.out.println(result);
             return result;
         } catch (Exception e) {
             return Collections.emptyMap();
