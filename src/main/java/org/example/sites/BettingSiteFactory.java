@@ -8,7 +8,7 @@ public class BettingSiteFactory {
 
     static {
         bettingSites.add(new SuperbetController());
-        bettingSites.add(new BetanoController());
+        bettingSites.add(new StanleyController());
         bettingSites.add(new UnibetController());
         bettingSites.add(new WinnerController());
     }
