@@ -2,7 +2,7 @@ name: Betting Checker
 
 on:
   schedule:
-   - cron: "*/190 * * * *"  # Runs every 70 minutes (1 hour running + 10 min pause)
+   - cron: "0 * * * *"  # Runs every hour
   workflow_dispatch: # Allows manual execution
 
 jobs:
