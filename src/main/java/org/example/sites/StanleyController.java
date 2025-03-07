@@ -58,7 +58,7 @@ public class StanleyController implements BettingSite {
                         String participantName = participant.getAsJsonObject().get("d").getAsString();
                         if (participantName.contains("U23") || participantName.contains("U19") || participantName.contains("(F)") ||
                                 participantName.contains("U20") || participantName.contains("(R)") || participantName.contains("II") ||
-                                participantName.contains("U21")) {
+                                participantName.contains("U21") || participantName.contains("B")) {
                             excludeMatch = true;
                             break;
                         }
