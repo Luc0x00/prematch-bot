@@ -89,29 +89,36 @@ public class WinnerController implements BettingSite {
 
 
     @Override
-    public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
+    public Map<Integer, List<List<String>>> getMatchesInformation(String response) {
         JsonArray data = extractJsonArray(response);
 
         if (data == null) {
             return Collections.emptyMap();
         }
 
-        Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> result = new HashMap<>();
+        Map<Integer, List<List<String>>> result = new HashMap<>();
         for (JsonElement element : data) {
             if (element.isJsonObject()) {
                 JsonObject obj = element.getAsJsonObject();
-                if (obj.has("idMatch") && obj.has("team1Name") && obj.has("team2Name") && obj.has("idSport")) {
+                if (obj.has("idMatch") && obj.has("team1Name") && obj.has("team2Name")
+                        && obj.has("idSport") && obj.has("matchDateTime")) {
+
                     int sportId = obj.get("idSport").getAsInt();
                     int eventId = obj.get("idMatch").getAsInt();
+                    long matchTimestamp = obj.get("matchDateTime").getAsLong();
+
+                    String rawDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                            .format(new Date(matchTimestamp));
+
+                    String matchDate = convertToIsoFormat(rawDate);
 
                     String team1 = getAsStringSafe(obj, "team1Name");
                     String team2 = getAsStringSafe(obj, "team2Name");
                     String matchName = team1 + " - " + team2;
 
-
                     if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
-                        result.computeIfAbsent(sportId, k -> new ArrayList<>())
-                                .add(new AbstractMap.SimpleEntry<>(matchName, eventId));
+                        List<String> matchData = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
+                        result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchData);
                     }
                 }
             }
@@ -326,5 +333,25 @@ public class WinnerController implements BettingSite {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
         calendar.add(Calendar.HOUR, 48);
         return sdf.format(calendar.getTime());
+    }
+
+    private String convertToIsoFormat(String input) {
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            inputFormat.setTimeZone(TimeZone.getTimeZone("Europe/Bucharest"));
+
+            Date date = inputFormat.parse(input);
+
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cal.add(Calendar.HOUR, -3);
+
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            outputFormat.setTimeZone(TimeZone.getTimeZone("Europe/Bucharest"));
+            return outputFormat.format(cal.getTime());
+
+        } catch (Exception e) {
+            return input.replace("T", " ").replace("Z", "").replace(".000", "").trim();
+        }
     }
 }

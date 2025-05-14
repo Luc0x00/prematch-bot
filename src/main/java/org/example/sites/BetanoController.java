@@ -42,7 +42,7 @@ public class BetanoController implements BettingSite {
         return executeGetRequest(BASE_URL + "/sport/fotbal/meciurile-urmatoare-de-azi/?sort=Leagues&req=la,s,stnf,c,mb");
     }
 
-    public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
+    public Map<Integer, List<List<String>>> getMatchesInformation(String response) {
         try {
             if (response == null || response.trim().isEmpty()) {
                 return Collections.emptyMap();
@@ -59,7 +59,7 @@ public class BetanoController implements BettingSite {
             }
 
             JsonArray blocks = root.getAsJsonObject("data").getAsJsonArray("blocks");
-            Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> result = new HashMap<>();
+            Map<Integer, List<List<String>>> result = new HashMap<>();
 
             for (JsonElement blockElement : blocks) {
                 JsonObject block = blockElement.getAsJsonObject();
@@ -70,18 +70,23 @@ public class BetanoController implements BettingSite {
                 for (JsonElement eventElement : events) {
                     JsonObject event = eventElement.getAsJsonObject();
                     if (event.has("sportId") && event.has("name") && event.has("id")) {
-                        int sportId = event.get("sportId").getAsString().equals("FOOT") ? 1 : 0;
+
+                        // Determină sportId (înlocuim "FOOT" cu 1, altfel 0)
+                        String sportCode = event.get("sportId").getAsString();
+                        int sportId = sportCode.equals("FOOT") ? 1 : 0;
+
                         String matchName = event.get("name").getAsString();
                         int eventId = event.get("id").getAsInt();
+                        String matchDate = event.has("startDate") ? event.get("startDate").getAsString() : "";
 
                         if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
-                            result.computeIfAbsent(sportId, k -> new ArrayList<>())
-                                    .add(new AbstractMap.SimpleEntry<>(matchName, eventId));
+                            List<String> matchInfo = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
+                            result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchInfo);
                         }
                     }
                 }
             }
-            System.out.println(result);
+
             return result;
         } catch (Exception e) {
             return Collections.emptyMap();

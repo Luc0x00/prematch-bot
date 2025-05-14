@@ -9,7 +9,7 @@ public interface BettingSite {
 
     String getMatchContent(Integer matchId) throws Throwable;
 
-    Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response);
+    Map<Integer, List<List<String>>> getMatchesInformation(String response);
 
     Map<String, Map<String, String>> getMatchMarkets(String response);
 

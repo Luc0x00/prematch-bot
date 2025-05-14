@@ -35,45 +35,55 @@ public class StanleyController implements BettingSite {
         return executeGetRequest(BASE_URL + "events?companyUuid=682e6a38-b5ad-4c58-a743-3b06c79e55cd&filter%5Bfrom%5D=" + startDate + "&timezone=Europe/Bucharest&language=%7B\"default\":\"ro\",\"tournament\":\"ro\",\"category\":\"ro\",\"sport\":\"ro\"%7D&filter%5Bto%5D=" + endDate + "&shortProps=1&offerTemplate=WEB_OVERVIEW&dataFormat=%7B\"default\":\"array\",\"events\":\"object\",\"outcomes\":\"array\"%7D&filter%5BsportId%5D=4");
     }
 
-    public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
-        JsonObject data = JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("data");
-        JsonObject events = data.getAsJsonObject("events");
+    public Map<Integer, List<List<String>>> getMatchesInformation(String response) {
+        try {
+            JsonObject data = JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("data");
+            JsonObject events = data.getAsJsonObject("events");
 
-        if (events == null) {
-            return Collections.emptyMap();
-        }
+            if (events == null) {
+                return Collections.emptyMap();
+            }
 
-        Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> result = new HashMap<>();
-        for (String key : events.keySet()) {
-            JsonObject obj = events.getAsJsonObject(key);
-            int sportId = obj.get("b").getAsInt();
-            String matchName = obj.get("j").getAsString();
-            int eventId = obj.get("a").getAsInt();
-            JsonArray participants = obj.getAsJsonArray("p");
-            boolean excludeMatch = false;
+            Map<Integer, List<List<String>>> result = new HashMap<>();
 
-            if (participants != null) {
-                for (JsonElement participant : participants) {
-                    if (participant.isJsonObject()) {
-                        String participantName = participant.getAsJsonObject().get("d").getAsString();
-                        if (participantName.contains("U23") || participantName.contains("U19") || participantName.contains("(F)") ||
-                                participantName.contains("U20") || participantName.contains("(R)") || participantName.contains("II") ||
-                                participantName.contains("U21") || participantName.contains("B")) {
-                            excludeMatch = true;
-                            break;
+            for (String key : events.keySet()) {
+                JsonObject obj = events.getAsJsonObject(key);
+
+                int sportId = obj.get("b").getAsInt();
+                String matchName = obj.get("j").getAsString();
+                int eventId = obj.get("a").getAsInt();
+                String rawDate = obj.has("n") ? obj.get("n").getAsString() : "";
+                String matchDate = convertToIsoFormat(rawDate);
+
+                JsonArray participants = obj.getAsJsonArray("p");
+                boolean excludeMatch = false;
+
+                if (participants != null) {
+                    for (JsonElement participant : participants) {
+                        if (participant.isJsonObject()) {
+                            String participantName = participant.getAsJsonObject().get("d").getAsString();
+                            if (participantName.contains("U23") || participantName.contains("U19") || participantName.contains("(F)")
+                                    || participantName.contains("U20") || participantName.contains("(R)") || participantName.contains("II")
+                                    || participantName.contains("U21") || participantName.contains("B")) {
+                                excludeMatch = true;
+                                break;
+                            }
                         }
                     }
                 }
+
+                if (excludeMatch) {
+                    continue;
+                }
+
+                List<String> matchInfo = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
+                result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchInfo);
             }
 
-            if (excludeMatch) {
-                continue;
-            }
-
-            result.computeIfAbsent(sportId, k -> new ArrayList<>())
-                .add(new AbstractMap.SimpleEntry<>(matchName, eventId));
+            return result;
+        } catch (Exception e) {
+            return Collections.emptyMap();
         }
-        return result;
     }
 
     public Map<String, Map<String, String>> getMatchMarkets(String response) {
@@ -263,5 +273,12 @@ public class StanleyController implements BettingSite {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
         calendar.add(Calendar.HOUR, 48);
         return sdf.format(calendar.getTime());
+    }
+
+    private String convertToIsoFormat(String input) {
+        return input.replace("T", " ")
+                .replace("Z", "")
+                .replace(".000", "")
+                .trim();
     }
 }

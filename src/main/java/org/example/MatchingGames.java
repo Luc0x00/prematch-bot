@@ -10,8 +10,8 @@ import static org.example.TelegramNotifier.sendMessageToTelegram;
 
 public class MatchingGames {
 
-    private Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapFirstSite;
-    private Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapSecondSite;
+    private Map<Integer, List<List<String>>> matchesMapFirstSite;
+    private Map<Integer, List<List<String>>> matchesMapSecondSite;
     private final Set<String> sentMessages;
 
     private final BettingSite firstBettingSite;
@@ -33,10 +33,10 @@ public class MatchingGames {
 
     private void initControllers() throws Throwable {
         String matchesResponseFirstSite = firstBettingSite.getAllMatchesContent();
-        Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapFirstSit = firstBettingSite.getMatchesInformation(matchesResponseFirstSite);
+        Map<Integer, List<List<String>>> matchesMapFirstSit = firstBettingSite.getMatchesInformation(matchesResponseFirstSite);
 
         String matchesResponseSecondSite = secondBettingSite.getAllMatchesContent();
-        Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMapSecondSite = secondBettingSite.getMatchesInformation(matchesResponseSecondSite);
+        Map<Integer, List<List<String>>> matchesMapSecondSite = secondBettingSite.getMatchesInformation(matchesResponseSecondSite);
 
         this.matchesMapFirstSite = matchesMapFirstSit;
         this.matchesMapSecondSite = matchesMapSecondSite;
@@ -77,33 +77,63 @@ public class MatchingGames {
             Integer firstSiteSportId = entry.getKey();
             Integer secondSiteSportId = entry.getValue();
 
-            List<AbstractMap.SimpleEntry<String, Integer>> firstSiteGames = matchesMapFirstSite.get(firstSiteSportId);
-            List<AbstractMap.SimpleEntry<String, Integer>> secondSiteGames = matchesMapSecondSite.get(secondSiteSportId);
+            List<List<String>> firstSiteGames = matchesMapFirstSite.get(firstSiteSportId);
+            List<List<String>> secondSiteGames = matchesMapSecondSite.get(secondSiteSportId);
 
             if (firstSiteGames == null || secondSiteGames == null) {
                 continue;
             }
 
-            for (AbstractMap.SimpleEntry<String, Integer> firstSiteGameEntry : firstSiteGames) {
-                String firstSiteGame = firstSiteGameEntry.getKey();
+            for (List<String> firstSiteGameEntry : firstSiteGames) {
+                String firstSiteGame = firstSiteGameEntry.get(0);
+                int firstSiteEventId = Integer.parseInt(firstSiteGameEntry.get(1));
+                String firstSiteDate = firstSiteGameEntry.get(2);
 
-                for (AbstractMap.SimpleEntry<String, Integer> secondSiteGameEntry : secondSiteGames) {
-                    String secondSiteGame = secondSiteGameEntry.getKey();
+                for (List<String> secondSiteGameEntry : secondSiteGames) {
+                    String secondSiteGame = secondSiteGameEntry.get(0);
+                    int secondSiteEventId = Integer.parseInt(secondSiteGameEntry.get(1));
+                    String secondSiteDate = secondSiteGameEntry.get(2);
 
-                    if (isMatchForFootball(firstSiteGame, secondSiteGame) && Objects.equals(firstSiteSportId, this.firstBettingSite.getFootballId())) {
-                        if (!firstSiteGame.contains("U23") && !secondSiteGame.contains("U23") &&
-                                !firstSiteGame.contains("U19") && !secondSiteGame.contains("U19") && !firstSiteGame.contains("(F)") && !secondSiteGame.contains("(F)") && !firstSiteGame.contains("U20") && !secondSiteGame.contains("U20") && !firstSiteGame.contains("(R)") && !secondSiteGame.contains("(R)") && !firstSiteGame.contains("II") && !secondSiteGame.contains("II") && !firstSiteGame.contains("U21") && !secondSiteGame.contains("U21") && !firstSiteGame.contains(" B") && !secondSiteGame.contains(" B") && !firstSiteGame.contains("Sub 19") && !secondSiteGame.contains("Sub 19") && !firstSiteGame.contains("Rezerve") && !secondSiteGame.contains("Rezerve")) {
+                    if (!firstSiteDate.equals(secondSiteDate)) {
+                        continue;
+                    }
+
+                    if (isMatchForFootball(firstSiteGame, secondSiteGame) &&
+                            Objects.equals(firstSiteSportId, this.firstBettingSite.getFootballId())) {
+
+                        boolean excludeYouth = !firstSiteGame.contains("U23") && !secondSiteGame.contains("U23") &&
+                                !firstSiteGame.contains("U19") && !secondSiteGame.contains("U19") &&
+                                !firstSiteGame.contains("(F)") && !secondSiteGame.contains("(F)") &&
+                                !firstSiteGame.contains("U20") && !secondSiteGame.contains("U20") &&
+                                !firstSiteGame.contains("(R)") && !secondSiteGame.contains("(R)") &&
+                                !firstSiteGame.contains("II") && !secondSiteGame.contains("II") &&
+                                !firstSiteGame.contains("U21") && !secondSiteGame.contains("U21") &&
+                                !firstSiteGame.contains(" B") && !secondSiteGame.contains(" B") &&
+                                !firstSiteGame.contains("Sub 19") && !secondSiteGame.contains("Sub 19") &&
+                                !firstSiteGame.contains("Rezerve") && !secondSiteGame.contains("Rezerve");
+
+                        boolean includeSameYouth = (
+                                (firstSiteGame.contains("U23") && secondSiteGame.contains("U23")) ||
+                                        (firstSiteGame.contains("U19") && secondSiteGame.contains("U19")) ||
+                                        (firstSiteGame.contains("(F)") && secondSiteGame.contains("(F)")) ||
+                                        (firstSiteGame.contains("U20") && secondSiteGame.contains("U20")) ||
+                                        (firstSiteGame.contains("(R)") && secondSiteGame.contains("(R)")) ||
+                                        (firstSiteGame.contains("II") && secondSiteGame.contains("II")) ||
+                                        (firstSiteGame.contains("U21") && secondSiteGame.contains("U21")) ||
+                                        (firstSiteGame.contains(" B") && secondSiteGame.contains(" B")) ||
+                                        (firstSiteGame.contains("Sub 19") && secondSiteGame.contains("Sub 19")) ||
+                                        (firstSiteGame.contains("Rezerve") && secondSiteGame.contains("Rezerve"))
+                        );
+
+                        if (excludeYouth || includeSameYouth) {
                             MatchPair matchPair = new MatchPair(firstSiteGame, secondSiteGame);
-                            matchingGames.put(matchPair, new Integer[]{firstSiteGameEntry.getValue(), secondSiteGameEntry.getValue()});
-                        } else if ((firstSiteGame.contains("U23") && secondSiteGame.contains("U23")) ||
-                                (firstSiteGame.contains("U19") && secondSiteGame.contains("U19")) || (firstSiteGame.contains("(F)") && secondSiteGame.contains("(F)")) || (firstSiteGame.contains("U20") && secondSiteGame.contains("U20")) || (firstSiteGame.contains("(R)") && secondSiteGame.contains("(R)")) || (firstSiteGame.contains("II") && secondSiteGame.contains("II")) || (firstSiteGame.contains("U21") && secondSiteGame.contains("U21")) || (firstSiteGame.contains(" B") && secondSiteGame.contains(" B")) || (firstSiteGame.contains("Sub 19") && secondSiteGame.contains("Sub 19")) || (firstSiteGame.contains("Rezerve") && secondSiteGame.contains("Rezerve"))) {
-                            MatchPair matchPair = new MatchPair(firstSiteGame, secondSiteGame);
-                            matchingGames.put(matchPair, new Integer[]{firstSiteGameEntry.getValue(), secondSiteGameEntry.getValue()});
+                            matchingGames.put(matchPair, new Integer[]{firstSiteEventId, secondSiteEventId});
                         }
                     }
                 }
             }
         }
+
         return matchingGames;
     }
 
@@ -122,7 +152,7 @@ public class MatchingGames {
         String secondSiteTeam1 = secondSiteTeams[0];
         String secondSiteTeam2 = secondSiteTeams[1];
         JaroWinklerDistance jaroWinkler = new JaroWinklerDistance();
-        double threshold = 0.95;
+        double threshold = 0.85;
 
         boolean isFirstTeamMatch = jaroWinkler.apply(firstSiteTeam1, secondSiteTeam1) >= threshold;
         boolean isSecondTeamMatch = jaroWinkler.apply(firstSiteTeam2, secondSiteTeam2) >= threshold;
@@ -205,7 +235,7 @@ public class MatchingGames {
                     if (secondSiteOdds != null) {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
-                        if (arbitrage < 95.0) {
+                        if (arbitrage < 98.0) {
                             String message = "**Arbitrage Opportunity Detected!**\n" +
                                     "🏆 **Match:** `" + matchNameFirstSite + "`\n" +
                                     "🏆 **Match:** `" + matchNameSecondSite + "`\n" +

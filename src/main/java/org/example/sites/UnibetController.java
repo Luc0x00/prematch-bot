@@ -43,41 +43,48 @@ public class UnibetController implements BettingSite {
     }
 
     @Override
-    public Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> getMatchesInformation(String response) {
-        Map<Integer, List<AbstractMap.SimpleEntry<String, Integer>>> matchesMap = new HashMap<>();
+    public Map<Integer, List<List<String>>> getMatchesInformation(String response) {
+        Map<Integer, List<List<String>>> matchesMap = new HashMap<>();
         JsonElement jsonElement = JsonParser.parseString(response);
         if (!jsonElement.isJsonObject()) {
             return matchesMap;
         }
+
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         JsonArray events = extractEvents(jsonObject);
         if (events == null) {
             return matchesMap;
         }
+
         for (JsonElement matchElement : events) {
             if (isInvalidJsonObject(matchElement)) {
-                return matchesMap;
+                continue;
             }
+
             JsonObject matchObject = matchElement.getAsJsonObject();
             JsonObject eventObject = extractEvent(matchObject);
             if (eventObject != null && eventObject.has("id") && !eventObject.get("id").isJsonNull()) {
                 int eventId = eventObject.get("id").getAsInt();
                 String name = eventObject.get("name").getAsString();
+                String rawStart = eventObject.has("start") && !eventObject.get("start").isJsonNull()
+                        ? eventObject.get("start").getAsString()
+                        : "";
+                String start = convertToIsoFormat(rawStart);
+
                 JsonArray pathArray = eventObject.getAsJsonArray("path");
 
                 if (!name.contains("Maccabi") && !name.contains("Hapoel")) {
                     if (pathArray != null && !pathArray.isEmpty()) {
                         JsonObject groupObject = pathArray.get(0).getAsJsonObject();
-
                         int sportId = groupObject.has("id") ? groupObject.get("id").getAsInt() : -1;
 
-                        AbstractMap.SimpleEntry<String, Integer> matchInfo = new AbstractMap.SimpleEntry<>(name, eventId);
-                        matchesMap.putIfAbsent(sportId, new ArrayList<>());
-                        matchesMap.get(sportId).add(matchInfo);
+                        List<String> matchData = Arrays.asList(name, String.valueOf(eventId), start);
+                        matchesMap.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchData);
                     }
                 }
             }
         }
+
         return matchesMap;
     }
 
@@ -320,5 +327,9 @@ public class UnibetController implements BettingSite {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
         calendar.add(Calendar.HOUR, 48);
         return sdf.format(calendar.getTime());
+    }
+
+    private String convertToIsoFormat(String input) {
+        return input.replace("T", " ").replace("Z", "").trim();
     }
 }
