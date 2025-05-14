@@ -122,7 +122,7 @@ public class MatchingGames {
         String secondSiteTeam1 = secondSiteTeams[0];
         String secondSiteTeam2 = secondSiteTeams[1];
         JaroWinklerDistance jaroWinkler = new JaroWinklerDistance();
-        double threshold = 0.95;
+        double threshold = 0.85;
 
         boolean isFirstTeamMatch = jaroWinkler.apply(firstSiteTeam1, secondSiteTeam1) >= threshold;
         boolean isSecondTeamMatch = jaroWinkler.apply(firstSiteTeam2, secondSiteTeam2) >= threshold;
