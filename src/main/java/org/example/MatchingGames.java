@@ -5,6 +5,7 @@ import org.example.models.MatchPair;
 import org.example.sites.BettingSite;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.example.TelegramNotifier.sendMessageToTelegram;
 
@@ -19,16 +20,19 @@ public class MatchingGames {
     private final BettingSite secondBettingSite;
 
     private Map<Integer, Integer> sportIdPairs;
-    private Map<String, String> betsCategories;
+    private final Map<String, String> betsCategories;
 
     public MatchingGames(BettingSite firstBettingSite, BettingSite secondBettingSite, Set<String> sentMessages) throws Throwable {
         this.firstBettingSite = firstBettingSite;
         this.secondBettingSite = secondBettingSite;
         this.sentMessages = sentMessages;
 
+        betsCategories = new HashMap<>();
+
         initControllers();
         initSportsId();
-        initBetsCategories();
+        initBetsCategoriesFootball();
+        initBetsCategoriesTennis();
     }
 
     private void initControllers() throws Throwable {
@@ -45,10 +49,10 @@ public class MatchingGames {
     private void initSportsId() {
         sportIdPairs = new HashMap<>();
         sportIdPairs.put(this.firstBettingSite.getFootballId(), this.secondBettingSite.getFootballId());
+        sportIdPairs.put(this.firstBettingSite.getTennisId(), this.secondBettingSite.getTennisId());
     }
 
-    private void initBetsCategories() {
-        betsCategories = new HashMap<>();
+    private void initBetsCategoriesFootball() {
         betsCategories.put(firstBettingSite.getTotalSuturiPePoarta(), secondBettingSite.getTotalSuturiPePoarta());
         betsCategories.put(firstBettingSite.getTotalSuturiPePoartaEchipa(), secondBettingSite.getTotalSuturiPePoartaEchipa());
         betsCategories.put(firstBettingSite.getTotalSuturi(), secondBettingSite.getTotalSuturi());
@@ -68,6 +72,13 @@ public class MatchingGames {
         betsCategories.put(firstBettingSite.getTotalOfsaiduriEchipa(), secondBettingSite.getTotalOfsaiduriEchipa());
         betsCategories.put(firstBettingSite.getTotalFaulturi(), secondBettingSite.getTotalFaulturi());
         betsCategories.put(firstBettingSite.getTotalFaulturiEchipa(), secondBettingSite.getTotalFaulturiEchipa());
+    }
+
+    private void initBetsCategoriesTennis() {
+        betsCategories.put(firstBettingSite.getTotalGameuri(), secondBettingSite.getTotalGameuri());
+        betsCategories.put(firstBettingSite.getTotalGameuriSetul1(), secondBettingSite.getTotalGameuriSetul1());
+        betsCategories.put(firstBettingSite.getTotalGameuriJucator(), secondBettingSite.getTotalGameuriJucator());
+        betsCategories.put(firstBettingSite.getTotalSeturi(), secondBettingSite.getTotalSeturi());
     }
 
     public Map<MatchPair, Integer[]> getSimilarMatches() {
@@ -94,12 +105,22 @@ public class MatchingGames {
                     int secondSiteEventId = Integer.parseInt(secondSiteGameEntry.get(1));
                     String secondSiteDate = secondSiteGameEntry.get(2);
 
-                    if (!firstSiteDate.equals(secondSiteDate)) {
-                        continue;
+                    if (firstSiteSportId.equals(firstBettingSite.getTennisId()) && secondSiteSportId.equals(secondBettingSite.getTennisId())) {
+                        firstSiteGame = normalizeTennisMatchName(firstSiteGame, firstBettingSite.getSplitter());
+                        secondSiteGame = normalizeTennisMatchName(secondSiteGame, secondBettingSite.getSplitter());
+
+                        if (isMatchForTennis(firstSiteGame, secondSiteGame)) {
+                            MatchPair matchPair = new MatchPair(firstSiteGame, secondSiteGame);
+                            matchingGames.put(matchPair, new Integer[]{firstSiteEventId, secondSiteEventId});
+                        }
                     }
 
                     if (isMatchForFootball(firstSiteGame, secondSiteGame) &&
                             Objects.equals(firstSiteSportId, this.firstBettingSite.getFootballId())) {
+
+                        if (!firstSiteDate.equals(secondSiteDate)) {
+                            continue;
+                        }
 
                         boolean excludeYouth = !firstSiteGame.contains("U23") && !secondSiteGame.contains("U23") &&
                                 !firstSiteGame.contains("U19") && !secondSiteGame.contains("U19") &&
@@ -133,11 +154,19 @@ public class MatchingGames {
                 }
             }
         }
-
         return matchingGames;
     }
 
     private boolean isMatchForFootball(String firstSiteGame, String secondSiteGame) {
+        if (firstSiteGame.contains(this.firstBettingSite.getSplitter()) && secondSiteGame.contains(this.secondBettingSite.getSplitter())) {
+            String[] firstSiteTeams = firstSiteGame.split(this.firstBettingSite.getSplitter());
+            String[] secondSiteTeams = secondSiteGame.split(this.secondBettingSite.getSplitter());
+            return areTeamsMatching(firstSiteTeams, secondSiteTeams);
+        }
+        return false;
+    }
+
+    private boolean isMatchForTennis(String firstSiteGame, String secondSiteGame) {
         if (firstSiteGame.contains(this.firstBettingSite.getSplitter()) && secondSiteGame.contains(this.secondBettingSite.getSplitter())) {
             String[] firstSiteTeams = firstSiteGame.split(this.firstBettingSite.getSplitter());
             String[] secondSiteTeams = secondSiteGame.split(this.secondBettingSite.getSplitter());
@@ -158,6 +187,48 @@ public class MatchingGames {
         boolean isSecondTeamMatch = jaroWinkler.apply(firstSiteTeam2, secondSiteTeam2) >= threshold;
 
         return (isFirstTeamMatch && isSecondTeamMatch);
+    }
+
+    private String normalizeTennisMatchName(String name, String siteSplitter) {
+        String[] players = name.split(Pattern.quote(siteSplitter));
+        if (players.length != 2) return name.trim();
+
+        List<String> normalizedPlayers = new ArrayList<>();
+        for (String player : players) {
+            String trimmed = player.trim();
+            if (trimmed.contains(",")) {
+                String[] parts = trimmed.split(",\\s*");
+                if (parts.length == 2) {
+                    normalizedPlayers.add(parts[1] + " " + parts[0]);
+                } else {
+                    normalizedPlayers.add(trimmed);
+                }
+            } else {
+                normalizedPlayers.add(trimmed);
+            }
+        }
+
+        normalizedPlayers.sort(String::compareToIgnoreCase);
+
+        return String.join(siteSplitter, normalizedPlayers);
+    }
+
+    private String toNumePrenume(String fullName) {
+        String[] parts = fullName.trim().split("\\s+");
+        if (parts.length >= 2) {
+            String prenume = String.join(" ", Arrays.copyOf(parts, parts.length - 1));
+            String nume = parts[parts.length - 1];
+            return nume + ", " + prenume;
+        }
+        return fullName;
+    }
+
+    private String normalizeForBetKey(String name, BettingSite site, int currentSportIdSite1, int currentSportIdSite2) {
+        if (site.getSiteName().toLowerCase().contains("unibet") && (currentSportIdSite1 == site.getTennisId() || currentSportIdSite2 == site.getTennisId())) {
+            return toNumePrenume(name);
+        } else {
+            return name.trim();
+        }
     }
 
     public void matchingSameBets(String matchNameFirstSite, String matchNameSecondSite,
@@ -186,11 +257,18 @@ public class MatchingGames {
             String secondSiteBetName = category.getValue();
 
             if (firstSiteBetName.contains("%s")) {
-                String firstSiteBetHome = String.format(firstSiteBetName, firstSiteHomeTeam);
-                String secondSiteBetHome = String.format(secondSiteBetName, secondSiteHomeTeam);
+                int currentSportIdSite1 = firstBettingSite.getTennisId();
+                int currentSportIdSite2 = secondBettingSite.getTennisId();
+                String normalizedFirstSiteHome = normalizeForBetKey(firstSiteHomeTeam, firstBettingSite, currentSportIdSite1, currentSportIdSite2);
+                String normalizedFirstSiteAway = normalizeForBetKey(firstSiteAwayTeam, firstBettingSite,  currentSportIdSite1, currentSportIdSite2);
+                String normalizedSecondSiteHome = normalizeForBetKey(secondSiteHomeTeam, secondBettingSite,  currentSportIdSite1, currentSportIdSite2);
+                String normalizedSecondSiteAway = normalizeForBetKey(secondSiteAwayTeam, secondBettingSite,  currentSportIdSite1, currentSportIdSite2);
 
-                String firstSiteBetAway = String.format(firstSiteBetName, firstSiteAwayTeam);
-                String secondSiteBetAway = String.format(secondSiteBetName, secondSiteAwayTeam);
+                String firstSiteBetHome = String.format(firstSiteBetName, normalizedFirstSiteHome);
+                String secondSiteBetHome = String.format(secondSiteBetName, normalizedSecondSiteHome);
+
+                String firstSiteBetAway = String.format(firstSiteBetName, normalizedFirstSiteAway);
+                String secondSiteBetAway = String.format(secondSiteBetName, normalizedSecondSiteAway);
 
                 processMatchingBets(matchNameFirstSite, matchNameSecondSite, firstSiteBetHome, secondSiteBetHome, firstSiteMatch, secondSiteMatch);
                 processMatchingBets(matchNameFirstSite, matchNameSecondSite, firstSiteBetAway, secondSiteBetAway, firstSiteMatch, secondSiteMatch);
@@ -235,7 +313,7 @@ public class MatchingGames {
                     if (secondSiteOdds != null) {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
-                        if (arbitrage < 95.0) {
+                        if (arbitrage < 100.0) {
                             String message = "**Arbitrage Opportunity Detected!**\n" +
                                     "🏆 **Match:** `" + matchNameFirstSite + "`\n" +
                                     "🏆 **Match:** `" + matchNameSecondSite + "`\n" +

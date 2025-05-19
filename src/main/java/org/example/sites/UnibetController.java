@@ -73,18 +73,15 @@ public class UnibetController implements BettingSite {
 
                 JsonArray pathArray = eventObject.getAsJsonArray("path");
 
-                if (!name.contains("Maccabi") && !name.contains("Hapoel")) {
-                    if (pathArray != null && !pathArray.isEmpty()) {
-                        JsonObject groupObject = pathArray.get(0).getAsJsonObject();
-                        int sportId = groupObject.has("id") ? groupObject.get("id").getAsInt() : -1;
+                if (pathArray != null && !pathArray.isEmpty()) {
+                    JsonObject groupObject = pathArray.get(0).getAsJsonObject();
+                    int sportId = groupObject.has("id") ? groupObject.get("id").getAsInt() : -1;
 
-                        List<String> matchData = Arrays.asList(name, String.valueOf(eventId), start);
-                        matchesMap.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchData);
-                    }
+                    List<String> matchData = Arrays.asList(name, String.valueOf(eventId), start);
+                    matchesMap.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchData);
                 }
             }
         }
-
         return matchesMap;
     }
 
@@ -154,6 +151,11 @@ public class UnibetController implements BettingSite {
     @Override
     public Integer getFootballId() {
         return 1000093190;
+    }
+
+    @Override
+    public Integer getTennisId() {
+        return 1000093193;
     }
 
     @Override
@@ -249,6 +251,26 @@ public class UnibetController implements BettingSite {
     @Override
     public String getTotalFaulturiEchipa() {
         return "Total faulturi comise de %s (Pariurile sunt stabilite utilizând Opta data)";
+    }
+
+    @Override
+    public String getTotalGameuri() {
+        return "Total Game-uri";
+    }
+
+    @Override
+    public String getTotalGameuriSetul1() {
+        return "Total Game-uri - Setul 1";
+    }
+
+    @Override
+    public String getTotalGameuriJucator() {
+        return "Total game-uri câștigate de %s";
+    }
+
+    @Override
+    public String getTotalSeturi() {
+        return "Total seturi";
     }
 
     @Override

@@ -32,7 +32,7 @@ public class StanleyController implements BettingSite {
         String startDate = getCurrentTimeFormatted();
         String endDate = getTime48HoursLater();
 
-        return executeGetRequest(BASE_URL + "events?companyUuid=682e6a38-b5ad-4c58-a743-3b06c79e55cd&filter%5Bfrom%5D=" + startDate + "&timezone=Europe/Bucharest&language=%7B\"default\":\"ro\",\"tournament\":\"ro\",\"category\":\"ro\",\"sport\":\"ro\"%7D&filter%5Bto%5D=" + endDate + "&shortProps=1&offerTemplate=WEB_OVERVIEW&dataFormat=%7B\"default\":\"array\",\"events\":\"object\",\"outcomes\":\"array\"%7D&filter%5BsportId%5D=4");
+        return executeGetRequest(BASE_URL + "events?companyUuid=682e6a38-b5ad-4c58-a743-3b06c79e55cd&filter%5Bfrom%5D=" + startDate + "&timezone=Europe/Bucharest&language=%7B\"default\":\"ro\",\"tournament\":\"ro\",\"category\":\"ro\",\"sport\":\"ro\"%7D&filter%5Bto%5D=" + endDate + "&shortProps=1&offerTemplate=WEB_OVERVIEW&dataFormat=%7B\"default\":\"array\",\"events\":\"object\",\"outcomes\":\"array\"%7D");
     }
 
     public Map<Integer, List<List<String>>> getMatchesInformation(String response) {
@@ -162,6 +162,11 @@ public class StanleyController implements BettingSite {
     }
 
     @Override
+    public Integer getTennisId() {
+        return 16;
+    }
+
+    @Override
     public String getTotalSuturiPePoarta() {
         return "Total Suturi pe Poarta";
     }
@@ -254,6 +259,26 @@ public class StanleyController implements BettingSite {
     @Override
     public String getTotalFaulturiEchipa() {
         return "Total Faulturi %s";
+    }
+
+    @Override
+    public String getTotalGameuri() {
+        return "Total Game-uri";
+    }
+
+    @Override
+    public String getTotalGameuriSetul1() {
+        return "Set 1 - Total Game-uri";
+    }
+
+    @Override
+    public String getTotalGameuriJucator() {
+        return "";
+    }
+
+    @Override
+    public String getTotalSeturi() {
+        return "";
     }
 
     @Override

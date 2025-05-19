@@ -55,10 +55,9 @@ public class SuperbetController implements BettingSite {
                     int eventId = obj.get("eventId").getAsInt();
                     String matchDate = obj.get("matchDate").getAsString();
 
-                    if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
-                        List<String> matchInfo = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
-                        result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchInfo);
-                    }
+                    List<String> matchInfo = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
+                    result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchInfo);
+
                 }
             }
         }
@@ -106,6 +105,11 @@ public class SuperbetController implements BettingSite {
     @Override
     public Integer getFootballId() {
         return 5;
+    }
+
+    @Override
+    public Integer getTennisId() {
+        return 2;
     }
 
     @Override
@@ -204,6 +208,26 @@ public class SuperbetController implements BettingSite {
     }
 
     @Override
+    public String getTotalGameuri() {
+        return "Total game-uri";
+    }
+
+    @Override
+    public String getTotalGameuriSetul1() {
+        return "Setul 1 - Total game-uri";
+    }
+
+    @Override
+    public String getTotalGameuriJucator() {
+        return "Total game-uri - %s";
+    }
+
+    @Override
+    public String getTotalSeturi() {
+        return "Total seturi";
+    }
+
+    @Override
     public String getSplitter() {
         return "·";
     }
@@ -235,19 +259,5 @@ public class SuperbetController implements BettingSite {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
         calendar.add(Calendar.HOUR, 48);
         return sdf.format(calendar.getTime());
-    }
-
-    private String convertToIsoFormat(String input) {
-        try {
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-            inputFormat.setTimeZone(TimeZone.getTimeZone("Europe/Bucharest"));
-            Date date = inputFormat.parse(input.split("\\+")[0]);
-
-            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            return isoFormat.format(date);
-        } catch (Exception e) {
-            return input;
-        }
     }
 }

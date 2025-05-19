@@ -1,6 +1,5 @@
 package org.example.sites;
 
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +15,8 @@ public interface BettingSite {
     String getSiteName();
 
     Integer getFootballId();
+
+    Integer getTennisId();
 
     String getTotalSuturiPePoarta();
 
@@ -54,6 +55,14 @@ public interface BettingSite {
     String getTotalFaulturi();
 
     String getTotalFaulturiEchipa();
+
+    String getTotalGameuri();
+
+    String getTotalGameuriSetul1();
+
+    String getTotalGameuriJucator();
+
+    String getTotalSeturi();
 
     String getSplitter();
 }

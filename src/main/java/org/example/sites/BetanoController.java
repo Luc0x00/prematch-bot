@@ -17,12 +17,12 @@ public class BetanoController implements BettingSite {
     private String executeGetRequest(String url) {
         try {
             Request request = new Request.Builder()
-                .url("https://ro.betano.com/api")
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                .header("Accept-Language", "en-US,en;q=0.9")
-                .header("Referer", "https://ro.betano.com/")
-                .get()
-                .build();
+                    .url("https://ro.betano.com/api")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Accept-Language", "en-US,en;q=0.9")
+                    .header("Referer", "https://ro.betano.com/")
+                    .get()
+                    .build();
 
             Response response = client.newCall(request).execute();
             try (ResponseBody responseBody = response.body()) {
@@ -79,10 +79,8 @@ public class BetanoController implements BettingSite {
                         int eventId = event.get("id").getAsInt();
                         String matchDate = event.has("startDate") ? event.get("startDate").getAsString() : "";
 
-                        if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
-                            List<String> matchInfo = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
-                            result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchInfo);
-                        }
+                        List<String> matchInfo = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
+                        result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchInfo);
                     }
                 }
             }
@@ -149,6 +147,11 @@ public class BetanoController implements BettingSite {
     @Override
     public Integer getFootballId() {
         return 1;
+    }
+
+    @Override
+    public Integer getTennisId() {
+        return 0;
     }
 
     @Override
@@ -244,6 +247,26 @@ public class BetanoController implements BettingSite {
     @Override
     public String getTotalFaulturiEchipa() {
         return "%s Total faulturi comise";
+    }
+
+    @Override
+    public String getTotalGameuri() {
+        return "";
+    }
+
+    @Override
+    public String getTotalGameuriSetul1() {
+        return "";
+    }
+
+    @Override
+    public String getTotalGameuriJucator() {
+        return "";
+    }
+
+    @Override
+    public String getTotalSeturi() {
+        return "";
     }
 
     @Override

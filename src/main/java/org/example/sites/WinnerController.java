@@ -67,26 +67,57 @@ public class WinnerController implements BettingSite {
         }
     }
 
-
     @Override
     public String getAllMatchesContent() {
-        try {
-            String startDate = getCurrentTimeFormatted();
-            String endDate = getTime48HoursLater();
+        JsonArray combinedEvents = new JsonArray();
+        String startDate = getCurrentTimeFormatted();
+        String endDate = getTime48HoursLater();
 
-            String jsonPayload = String.format("""
-            {
-                "timeFrom": "%s",
-                "timeTo": "%s",
-                "sportId": "1"
-            }""", startDate, endDate);
+        for (int sportId : List.of(1, 3)) {
+            try {
+                String jsonPayload = String.format("""
+                        {
+                            "timeFrom": "%s",
+                            "timeTo": "%s",
+                            "sportId": "%d"
+                        }""", startDate, endDate, sportId);
 
-            return executePostRequest(jsonPayload, API_URL).get(30, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            return "";
+                String response = executePostRequest(jsonPayload, API_URL).get(30, TimeUnit.SECONDS);
+                JsonArray events = extractEventsArray(response);
+
+                if (events != null) {
+                    for (JsonElement e : events) {
+                        combinedEvents.add(e);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Eroare la sportId=" + sportId + ": " + e.getMessage());
+            }
         }
+
+        JsonObject data = new JsonObject();
+        data.add("events", combinedEvents);
+        JsonObject root = new JsonObject();
+        root.add("data", data);
+        return root.toString();
     }
 
+    private JsonArray extractEventsArray(String jsonResponse) {
+        try {
+            JsonElement jsonElement = JsonParser.parseString(jsonResponse);
+            if (jsonElement.isJsonObject()) {
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                if (jsonObject.has("data")) {
+                    JsonObject dataObject = jsonObject.getAsJsonObject("data");
+                    if (dataObject.has("events") && dataObject.get("events").isJsonArray()) {
+                        return dataObject.getAsJsonArray("events");
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
 
     @Override
     public Map<Integer, List<List<String>>> getMatchesInformation(String response) {
@@ -116,10 +147,8 @@ public class WinnerController implements BettingSite {
                     String team2 = getAsStringSafe(obj, "team2Name");
                     String matchName = team1 + " - " + team2;
 
-                    if (!matchName.contains("Maccabi") && !matchName.contains("Hapoel")) {
-                        List<String> matchData = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
-                        result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchData);
-                    }
+                    List<String> matchData = Arrays.asList(matchName, String.valueOf(eventId), matchDate);
+                    result.computeIfAbsent(sportId, k -> new ArrayList<>()).add(matchData);
                 }
             }
         }
@@ -184,6 +213,11 @@ public class WinnerController implements BettingSite {
     @Override
     public Integer getFootballId() {
         return 1;
+    }
+
+    @Override
+    public Integer getTennisId() {
+        return 3;
     }
 
     @Override
@@ -279,6 +313,26 @@ public class WinnerController implements BettingSite {
     @Override
     public String getTotalFaulturiEchipa() {
         return "Faulturi - Total %s";
+    }
+
+    @Override
+    public String getTotalGameuri() {
+        return "Total game-uri";
+    }
+
+    @Override
+    public String getTotalGameuriSetul1() {
+        return "Primul set: Total";
+    }
+
+    @Override
+    public String getTotalGameuriJucator() {
+        return "%s: Total game-uri câștigate";
+    }
+
+    @Override
+    public String getTotalSeturi() {
+        return "Total seturi";
     }
 
     @Override
