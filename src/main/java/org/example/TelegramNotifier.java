@@ -12,11 +12,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class TelegramNotifier {
-    private static final String BOT_TOKEN = "7801461461:AAEVSW29o-4qRnj_nNfXb0SZdIeoepeg6ww";
+    private static final String BOT_TOKEN = "8008127656:AAE2yAyCyy0ZmpeuOPf2FrbIyuGLAJbwyDs";
 
     public static void sendMessageToTelegram(String message) {
         try {
-            String chatId = "5208483861";
+            String chatId = "-1002658022398";
 
             String urlString = "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage";
             URL url = new URL(urlString);
