@@ -68,5 +68,9 @@ public class Main {
                 }
             }
         }, 0, 5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> {
+            System.out.println("Clearing sentMessages...");
+            sentMessages.clear();
+        }, 2, 2, TimeUnit.HOURS);
     }
 }
