@@ -313,7 +313,7 @@ public class MatchingGames {
                     if (secondSiteOdds != null) {
                         double arbitrage = calculateArbitrage(firstSiteOdds, secondSiteOdds);
 
-                        if (arbitrage < 110.0) {
+                        if (arbitrage < 95.0) {
                             String message = "**Arbitrage Opportunity Detected!**\n" +
                                     "🏆 **Match:** `" + matchNameFirstSite + "`\n" +
                                     "🏆 **Match:** `" + matchNameSecondSite + "`\n" +
