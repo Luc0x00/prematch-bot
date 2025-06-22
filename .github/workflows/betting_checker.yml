@@ -27,4 +27,4 @@ jobs:
         run: mvn clean package
 
       - name: Run Arbitrage Bot
-        run: java -jar target/Bettings-1.0-SNAPSHOT-shaded.jar
+        run: java -jar target/Bettings-1.0-SNAPSHOT.jar
