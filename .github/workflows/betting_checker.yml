@@ -1,14 +1,14 @@
 name: Betting Checker
 
 on:
-  schedule:
-    - cron: '0 * * * *'   # la fiecare oră (UTC)
-  workflow_dispatch:
+  # schedule:
+  #  - cron: "0 * * * *"  # Runs every hour
+  workflow_dispatch: # Allows manual execution
 
 jobs:
   run-betting-script:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 60  # Ensures it doesn't exceed 1 hour
 
     steps:
       - name: Checkout repository
@@ -20,11 +20,12 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Set up Maven
-        run: mvn -v
 
-      - name: Build and Package
+      - name: Set up Maven
+        run: mvn -v  # Check Maven installation
+
+      - name: Build and Compile Project
         run: mvn clean package
 
-      - name: Run Arbitrage Bot
-        run: java -jar target/Bettings-1.0-SNAPSHOT.jar
+      - name: Run Java application
+        run: java -cp target/Bettings-1.0-SNAPSHOT.jar org.example.Main
