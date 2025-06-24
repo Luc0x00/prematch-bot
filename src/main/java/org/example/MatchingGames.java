@@ -176,10 +176,10 @@ public class MatchingGames {
     }
 
     public static boolean areTeamsMatching(String[] firstSiteTeams, String[] secondSiteTeams) {
-        String firstSiteTeam1 = firstSiteTeams[0];
-        String firstSiteTeam2 = firstSiteTeams[1];
-        String secondSiteTeam1 = secondSiteTeams[0];
-        String secondSiteTeam2 = secondSiteTeams[1];
+        String firstSiteTeam1 = cleanTeamName(firstSiteTeams[0]);
+        String firstSiteTeam2 = cleanTeamName(firstSiteTeams[1]);
+        String secondSiteTeam1 = cleanTeamName(secondSiteTeams[0]);
+        String secondSiteTeam2 = cleanTeamName(secondSiteTeams[1]);
         JaroWinklerDistance jaroWinkler = new JaroWinklerDistance();
         double threshold = 0.85;
 
@@ -187,6 +187,15 @@ public class MatchingGames {
         boolean isSecondTeamMatch = jaroWinkler.apply(firstSiteTeam2, secondSiteTeam2) >= threshold;
 
         return (isFirstTeamMatch && isSecondTeamMatch);
+    }
+
+    private static String cleanTeamName(String team) {
+        return team
+                .replaceAll("\\(.*?\\)", "")
+                .replaceAll("U\\d{2}", "")
+                .replaceAll("Rezerve", "")
+                .replaceAll(" B", "")
+                .trim();
     }
 
     private String normalizeTennisMatchName(String name, String siteSplitter) {
